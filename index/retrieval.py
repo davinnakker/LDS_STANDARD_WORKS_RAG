@@ -1,16 +1,26 @@
 from scripture_storage import ScriptureStorage, Verse
 from scripture_embedding import ScriptureEmbedder
 from scripture_index import ScriptureIndex
+import numpy as np
+import textwrap
+import os
 
 class Retrieval:
-    def __init__(self, FILE_PATH):
+    def __init__(self, FILE_PATH, embeddings_cache_path="embeddings_cache.npy"):
         # initialize storage
         self.storage = ScriptureStorage(FILE_PATH)
         texts = self.storage.get_all_texts()
 
         # initialize embedder
         self.embedder = ScriptureEmbedder()
-        embeddings = self.embedder.embed_texts(texts)
+
+        # create embeddings from cache, or from model
+        if os.path.exists(embeddings_cache_path):
+            print(f"loading embeddings from {embeddings_cache_path}....")
+            embeddings = np.load(embeddings_cache_path)
+        else:
+            embeddings = self.embedder.embed_texts(texts)
+            np.save(embeddings_cache_path, embeddings)
 
         # inititalize index
         self.index = ScriptureIndex(embeddings)
@@ -23,6 +33,13 @@ class Retrieval:
         distances, indices = self.index.search(embedded_query, k=k)
 
         # pull verses
-        verses = self.storage.get_verses(indices.flatten())
+        self.verses = self.storage.get_verses(indices.flatten())
 
-        return verses
+        return self.verses
+    
+    def display(self):
+        print()
+        for verse in self.verses:
+            print(verse.citation)
+            print(textwrap.fill(verse.text, width=40))
+            print()
