@@ -1,6 +1,6 @@
-from scripture_storage import ScriptureStorage, Verse
-from scripture_embedding import ScriptureEmbedder
-from scripture_index import ScriptureIndex
+from .scripture_storage import ScriptureStorage, Verse
+from .scripture_embedding import ScriptureEmbedder
+from .scripture_index import ScriptureIndex
 import numpy as np
 import textwrap
 import os
