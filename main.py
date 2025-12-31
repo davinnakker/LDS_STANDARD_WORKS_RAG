@@ -1,18 +1,16 @@
-# import data
-import pandas as pd
-df = pd.read_csv("lds-scriptures.csv")
+from fastapi import FastAPI
+from index.retrieval import Retrieval
 
-# import RAG functions
-from RAG_module import search_index
+app = FastAPI(title="Scripture Retriever",
+              description="Semantically search the lds standard works")
 
-# query
-while True:
-    query = input("What would you like to look for? (press space to quit): ")
-    if query == " ":
-        break
-    rows = search_index(query, "scriptures")
-    print("-----RESULTS-----")
-    for row in rows[0]:
-        title, verse = df.iloc[row][['verse_short_title', 'scripture_text']]
-        print(f"{title} {verse}")
-        print()
+@app.on_event("start-up")
+def startup():
+    # set inputs for retrieval
+    SCRIPTURE_FILE = "index\data\lds-scriptures.csv"
+    CACHE_FILE = "index\embeddings_cache.npy"
+
+    # initiate retrieval class
+    global retrieval
+    retrieval = Retrieval(SCRIPTURE_FILE, embeddings_cache_path=CACHE_FILE)
+
