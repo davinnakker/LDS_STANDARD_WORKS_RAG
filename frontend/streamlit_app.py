@@ -35,4 +35,7 @@ if st.button("Search"):
         """)
         st.divider()
 
+    # python -m uvicorn app.main:app --reload
+    # streamlit run frontend/streamlit_app.py
+
     
