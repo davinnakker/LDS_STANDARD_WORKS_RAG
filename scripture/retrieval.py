@@ -25,7 +25,7 @@ class Retrieval:
         # inititalize index
         self.index = ScriptureIndex(embeddings)
         
-    def query(self, query: str, k=5) -> list[Verse]:
+    def query(self, query: str, k: int) -> list[Verse]:
         # embed query
         embedded_query = self.embedder.embed_single_text(query)
 

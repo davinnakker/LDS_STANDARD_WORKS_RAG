@@ -6,6 +6,8 @@ class Verse:
     text: str
     citation: str
     index: int
+    book_title: str
+    book: str
 
 class ScriptureStorage:
     def __init__(self, file):
@@ -16,7 +18,9 @@ class ScriptureStorage:
 
         verse = Verse(text=row['scripture_text'],
                       citation=row['verse_title'],
-                      index=idx)
+                      index=idx,
+                      book_title=row['book_title'],
+                      book=row['volume_title'])
         
         return verse
     

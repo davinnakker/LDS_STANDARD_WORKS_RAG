@@ -18,15 +18,18 @@ def startup():
     retriever = Retrieval(SCRIPTURE_FILE, embeddings_cache_path=CACHE_FILE)
 
 @app.get("/search")
-def query(query: str, k: int) -> list[dict]:
-    verses = retriever.query(query, k=k)
+def query(query: str, k: int, book: str = 'all') -> list[dict]:
+    verses = retriever.query(query, (k + 30))
 
     results = []
     for verse in verses:
-        verse_dict = {"citation": verse.citation,
-                      "text": verse.text}
-        
-        results.append(verse_dict)
+        if verse.book == book or book == 'all':
+            verse_dict = {"citation": verse.citation,
+                        "text": verse.text}
+            
+            results.append(verse_dict)
+        if len(results) >= k:
+            break
     
     return results
 
