@@ -1,36 +1,38 @@
 from fastapi import FastAPI
 import uvicorn
-from scripture.retrieval import Retrieval
+from semantic.retrieval import Retrieval
+from .helper_functions import get_csv
+
 
 app = FastAPI(title="Scripture Retriever",
               description="Semantically search the lds standard works")
 
-retriever = None
+retrievers = {}
 
-@app.on_event("startup")
-def startup():
-    # set inputs for retrieval (paths relative to project root)
-    SCRIPTURE_FILE = "data/lds-scriptures.csv"
-    CACHE_FILE = "data/embeddings_cache.npy"
+for book in [
+    "All",
+    "Old Testament",
+    "New Testament",
+    "Book of Mormon",
+    "Doctrine and Covenants",
+    "Pearl of Great Price"
+]:
+    csv, embeddings = get_csv(book)
+    retrievers[book] = Retrieval(csv, embeddings)
 
-    # initiate retrieval class
-    global retriever
-    retriever = Retrieval(SCRIPTURE_FILE, embeddings_cache_path=CACHE_FILE)
 
 @app.get("/search")
 def query(query: str, k: int, book: str = 'All') -> list[dict]:
-    verses = retriever.query(query, (k + 30))
+
+    retriever = retrievers[book]
+    
+    verses = retriever.query(query, k)
 
     results = []
     for verse in verses:
-        if verse.book == book or book == 'All':
-            verse_dict = {"citation": verse.citation,
+        verse_dict = {"citation": verse.citation,
                         "text": verse.text}
-            
-            results.append(verse_dict)
-            
-        if len(results) >= k:
-            break
+        results.append(verse_dict)
     
     return results
 
