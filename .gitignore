@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 data/*.npy
 *.npy
+.env
+.db
+.csv
+data/*
