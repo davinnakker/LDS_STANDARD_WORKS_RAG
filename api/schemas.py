@@ -13,3 +13,10 @@ class ScriptureResponse(ScriptureBase):
     id: int
     verse_title: str
     text: str
+
+class IngestRequest(BaseModel):
+    table_name: str
+    text_column: str
+    id_column: str
+    metadata_col_names: list[str]
+    collection_name: str

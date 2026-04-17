@@ -25,10 +25,10 @@ class RetrievalService:
         self.embedder = embedder
         self.vector_db = vector_db
 
-    def retrieve(self, collection_name: str, query: str, top_k: int, filter: dict | None = None):
+    def retrieve(self, collection_name: str, table_name: str, query: str, top_k: int, filter: dict | None = None):
         query_vector = self.embedder.encode_single(query)
         ids = self.vector_db.search_vectors(collection_name=collection_name, query_vector=query_vector, top_k=top_k, filter=filter)
-        rows = self.database.get_rows_by_ids(ids, table_name=collection_name)
+        rows = self.database.get_rows_by_ids(ids, table_name=table_name)
         return rows
         
 

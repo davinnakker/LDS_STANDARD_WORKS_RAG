@@ -24,12 +24,12 @@ class VectorStoring():
                  distance: Distance = Distance.COSINE):
         
         self.qdrant_client = qdrant_client
-        self.dimension = len(vectors[0]) if vectors else 0
+        self.dimension = len(vectors[0]) if len(vectors) > 0 else 0
         self.distance = distance
         self.collection_name = collection_name
 
     def create_collection(self):
-        if self.collection_name in self.qdrant_client.collection_exists(self.collection_name):
+        if self.qdrant_client.collection_exists(self.collection_name):
             self.qdrant_client.delete_collection(collection_name=self.collection_name)
         try:
             response = self.qdrant_client.create_collection(collection_name=self.collection_name, vectors_config=VectorParams(size=self.dimension, distance=self.distance))
@@ -51,14 +51,10 @@ class VectorStoring():
                                                     payload=payloads,
                                                     ids=ids,
                                                     batch_size=100,
-                                                    parallel=2,
-                                                    timeout=1000)
-                if response:
-                    logger.info(f"Uploaded {len(ids)} vectors to collection '{self.collection_name}'.")
-                    return response
-                else:
-                    logger.warning(f"Failed to upload vectors to collection '{self.collection_name}'.")
-                    return response
+                                                    parallel=2)
+                
+                logger.info(f"Uploaded {len(ids)} vectors to collection '{self.collection_name}'.")
+                return True
             except Exception as e:
                 logger.error(f"Error uploading collection: {e}")
                 raise
@@ -93,26 +89,27 @@ class VectorSearch():
         ids = [point.id for point in response.points]
         return ids
     
-    def __make_filter(metadata: dict):
+    def __make_filter(self, metadata: dict):
             filter = Filter(must=[FieldCondition(key=key, match=MatchValue(value=value)) for key, value in metadata.items()])
             return filter
     
 class VectorDB():
     def __init__(self, qdrant_client: QdrantClient):
-        self.vector_storing = VectorStoring(qdrant_client)
-        self.vector_search = VectorSearch(qdrant_client)
+        self.qdrant_client = qdrant_client
 
     def store_vectors(self, collection_name: str, vectors: List[List[float]], payloads: List[dict], ids: List[int]):
-        self.vector_storing.create_collection(collection_name)
-        self.vector_storing.upload_collection(collection_name, vectors, payloads, ids)
+        vector_storing = VectorStoring(qdrant_client=self.qdrant_client, collection_name=collection_name, vectors=vectors)
+        vector_storing.create_collection()
+        vector_storing.upload_collection(vectors, payloads, ids)
         index_fields = [key for key in payloads[0].keys() if key != 'id']  # Exclude 'text' from indexing
         if index_fields:
             for field in index_fields:
-                self.vector_storing.index_payload(collection_name, field)
+                vector_storing.index_payload(field)
         logger.info(f"Vectors stored successfully in collection '{collection_name}' with {len(ids)} entries.")
 
     def search_vectors(self, collection_name: str, query_vector: List[float], top_k: int, filter: dict | None = None):
-        return self.vector_search.search_collection(collection_name, query_vector, top_k, filter)
+        vector_search = VectorSearch(qdrant_client=self.qdrant_client, collection_name=collection_name)
+        return vector_search.search_collection(query_vector, top_k, filter)
 
     
 

@@ -1,10 +1,19 @@
 from fastapi import FastAPI
 from .schemas import *
-from .services import get_retrieval_service
+from .services import get_retrieval_service, get_ingestion_service
 
 app = FastAPI()
 
 retrieval = get_retrieval_service()
+
+@app.post("/ingest")
+def ingest(request: IngestRequest):
+    ingestion = get_ingestion_service()
+    ingestion.retrieve_from_db(table_name=request.table_name, text_column=request.text_column, id_column=request.id_column, metadata_col_names=request.metadata_col_names)
+    ingestion.embed()
+    ingestion.store_in_vector_db(collection_name=request.collection_name)
+    return {"message": f"Data from {request.table_name} ingested into {request.collection_name} vector database."}
+
 
 @app.post("/scriptures/search")
 def search(request: ScriptureRequest) -> list[ScriptureResponse]:
@@ -17,7 +26,7 @@ def search(request: ScriptureRequest) -> list[ScriptureResponse]:
 
     print(f"Filter first: {filter}")
 
-    results = retrieval.retrieve(query=request.query, db_table_name="standard_works", vb_collection_name="standard_works_openai", top_k=request.limit, filter=filter)
+    results = retrieval.retrieve(collection_name="standard_works_openai", table_name="standard_works", query=request.query, top_k=request.limit, filter=filter)
 
     responses = [ScriptureResponse(id=result['id'], 
                                    volume_title=result['volume_title'], 

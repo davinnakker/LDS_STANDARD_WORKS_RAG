@@ -41,7 +41,7 @@ class DatabaseInterface():
     def get_metadata(self, table_name: str, metadata_col_names: list[str]) -> list[dict]:
         try:
             conn = sqlite3.connect(self.db_file)
-            df = pd.read_sql(f"SELECT {', '.join(metadata_col_names)} FROM {table_name}", con=conn)
+            df = pd.read_sql(f"SELECT {', '.join(metadata_col_names)}, id FROM {table_name}", con=conn)
             metadata = df.to_dict(orient='records')
             return metadata
         except Exception as e:
