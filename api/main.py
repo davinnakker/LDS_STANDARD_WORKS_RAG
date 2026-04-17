@@ -36,6 +36,8 @@ def search(request: ScriptureRequest) -> list[ScriptureResponse]:
     
     return responses
 
+
+
 @app.post("/general_conference/search")
 def search(request):
     pass

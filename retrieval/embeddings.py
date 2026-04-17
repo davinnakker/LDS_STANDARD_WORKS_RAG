@@ -43,7 +43,7 @@ class OpenAIEmbedder(Embedder):
         response = self.client.embeddings.create(input=text, model=self.model_name)
         return response.data[0].embedding
     
-    def encode_batch(self, texts, batch_size: int = 2000):
+    def encode_batch(self, texts, batch_size: int = 300):
         all_embeddings = []
         total_texts = len(texts)
         print(f"Total texts to embed: {total_texts}")

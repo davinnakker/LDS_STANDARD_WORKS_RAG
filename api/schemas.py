@@ -20,3 +20,5 @@ class IngestRequest(BaseModel):
     id_column: str
     metadata_col_names: list[str]
     collection_name: str
+
+    model_config = ConfigDict(from_attributes=True)
